@@ -1,0 +1,18 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+crash.log
+terraform.tfvars
+terraform.auto.tfvars
+tfplan*
+.key
+.zip
+# VS Code
+.vscode-server/
+*.code-workspace
+
+# GitLab CI/CD
+.gitlab-ci.yml.lock
+

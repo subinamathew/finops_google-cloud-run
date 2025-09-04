@@ -1,0 +1,29 @@
+# This file contains the variable values for your Terraform configuration.
+# Set the values here to customize your deployment.
+
+# The ID of the Google Cloud project for billing.
+billing_project_id = ""
+
+# The region where the Cloud Run job will be deployed.
+app_region = ""
+
+# The name for the Cloud Run job.
+billing_job_name = ""
+
+# Set to true to prevent accidental deletion of the job.
+deletion_protection = false
+
+# The email of the service account the job will use for its identity. This service account must exist.
+service_account_email = ""
+
+# A map of container definitions for the job. The map key is the container name.
+containers = {
+  "billing-manager" = {
+    image = "us-central1-docker.pkg.dev/your-gcp-project-id/your-artifact-repo/my-docker-image:latest"
+    env = {
+      GCP_PROJECT_ID      = "your-gcp-project-id"
+      BIGQUERY_DATASET_ID = "your_dataset_name"
+      GCS_BUCKET_NAME     = "your-gcs-bucket-name"
+    }
+  }
+}
