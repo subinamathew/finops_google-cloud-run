@@ -1,0 +1,26 @@
+# .pre-commit-config.yaml
+
+repos:
+  # General hooks for formatting and line endings
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-case-conflict
+
+  # Terraform-specific hooks
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.88.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+      # TFLint is run separately below, but you can run it here too
+
+  # TFLint hook (required for Cloud-specific checks)
+  - repo: https://github.com/terraform-linters/tflint-pre-commit
+    rev: v0.48.0
+    hooks:
+      - id: tflint
+        args: [--config=./.tflint.hcl]

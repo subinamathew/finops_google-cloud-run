@@ -8,12 +8,20 @@ Here's a basic example of how to use this module to create a Cloud Run job.
 
 ```hcl
 module "cloud_run_job" {
-  source                = "./"
-  billing_project_id    = "your-gcp-project-id"
-  app_region            = "us-central1"
-  billing_job_name      = "my-billing-job"
+  source              = "./"
+  billing_project_id  = "your-gcp-project-id"
+  app_region          = "us-central1"
+  billing_job_name    = "my-billing-job"
   service_account_email = "my-service-account@your-gcp-project-id.iam.gserviceaccount.com"
-
+  
+  # --- FinOps & Cost Controls (Step 3) ---
+  labels = {
+    team        = "finops"
+    cost_center = "cc-42"
+  }
+  deletion_protection = true # Operational Safety
+  max_instance_count  = 5    # Cap the concurrent tasks to limit cost
+  
   containers = {
     "billing-manager" = {
       image = "us-central1-docker.pkg.dev/your-gcp-project-id/your-artifact-repo/my-docker-image:latest"
@@ -23,6 +31,11 @@ module "cloud_run_job" {
         GCS_BUCKET_NAME     = "your-gcs-bucket-name"
       }
     }
+  }
+  
+  # Optional: Grant other service accounts permission to run this job
+  iam = {
+    "roles/cloudtasks.enqueuer" = ["serviceAccount:tasks-sa@\${var.billing_project_id}.iam.gserviceaccount.com"]
   }
 }
 ```
@@ -68,3 +81,24 @@ module "cloud_run_job" {
 | `job_id` | The fully qualified ID of the Cloud Run job. |
 
 <!-- END TFDOC -->
+
+## IAM Requirements
+
+To successfully deploy and run this module, two primary Google Cloud Identities require permissions:
+
+### 1. The Terraform Deployment User/SA
+The identity executing this Terraform module needs the following roles at a minimum on the deployment project:
+* \`roles/run.admin\` (To create and manage the Cloud Run Job)
+* \`roles/iam.serviceAccountUser\` (To grant the job the ability to use the runtime Service Account)
+* \`roles/serviceusage.serviceUsageAdmin\` (To enable the Cloud Run API if not already done)
+
+### 2. The Cloud Run Runtime Service Account
+The service account specified by \`service_account_email\` needs the permissions necessary for your container's work (e.g., BigQuery writing, GCS access). The \`var.iam\` input is used to assign roles to the Job itself, which affects external access.
+
+## Outputs
+
+| Name | Description |
+| :--- | :--- |
+| \`job_id\` | The full resource ID of the Cloud Run job. |
+| \`job_url\` | The URL to the job in the Google Cloud Console. |
+EOF

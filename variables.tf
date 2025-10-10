@@ -26,7 +26,7 @@ variable "service_account_email" {
 }
 
 variable "containers" {
-  description = "A map of container definitions for the job. The map key is the container name. See `terraform.tfvars.example` for a sample configuration."
+  description = "A map of container definitions for the job. The map key is the container name. See `variables.tf` for the full object specification."
   type = map(object({
     image      = string
     depends_on = optional(list(string))
@@ -117,4 +117,16 @@ variable "job_config" {
     condition     = var.job_config.timeout == null ? true : endswith(var.job_config.timeout, "s")
     error_message = "Timeout should follow format of number with up to nine fractional digits, ending with 's'. Example: '3.5s'."
   }
+}
+
+variable "labels" {
+  description = "A map of key/value labels to apply to the Cloud Run Job for cost allocation and grouping (FinOps)."
+  type        = map(string)
+  default     = {}
+}
+
+variable "max_instance_count" {
+  description = "The maximum number of instances (tasks) that can run concurrently for this job. Essential for limiting cost."
+  type        = number
+  default     = 10 # A reasonable default limit
 }
