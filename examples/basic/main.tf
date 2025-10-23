@@ -4,7 +4,7 @@ terraform {
 
   required_providers {
     google = {
-      source = "hashicorp/google"
+      source  = "hashicorp/google"
       # Pin the major version to prevent breaking changes from provider updates
       version = ">= 6.47.0, < 7.0.0" # tftest
     }
@@ -15,11 +15,11 @@ terraform {
   }
 }
 
-
-# 2. Define Variables
 variable "project_id" {
   description = "The GCP project ID to deploy to."
   type        = string
+  # Example Value - Replace with your own project
+  default     = "gcp-project-12345" 
 }
 
 variable "region" {
@@ -30,7 +30,6 @@ variable "region" {
 
 # 3. Call the Module
 module "cloud_run_job_example" {
-  # This references the parent directory, which is your module root
   source = "../../" 
   
   billing_project_id    = var.project_id
@@ -38,16 +37,39 @@ module "cloud_run_job_example" {
   billing_job_name      = "finops-cleaner-job"
   service_account_email = "my-job-sa@${var.project_id}.iam.gserviceaccount.com"
   
-  # FIX: Explicitly setting iam={} removes the TFLint warning in this example context
-  iam = {}
+  labels = {
+    env = "dev"
+  }
+
+  # Job execution configuration (task_count is required)
+  job_config = {
+    task_count  = 1
+    max_retries = 3
+    timeout     = "600s" # 10 minutes
+  }
 
   containers = {
     "billing-manager" = {
       image = "gcr.io/cloudrun/hello" # Use a dummy image for the example
+      # Example environment variable
       env = {
         LOG_LEVEL = "INFO"
       }
+      # Example resource limits
+      resources = {
+        limits = {
+          cpu    = "1"
+          memory = "512Mi"
+        }
+      }
     }
+  }
+  
+  # IAM binding to allow a user to invoke the job
+  iam = {
+    "roles/run.viewer" = [
+      "group:gcp-devs@example.com",
+    ]
   }
 }
 
